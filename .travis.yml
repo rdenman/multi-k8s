@@ -1,0 +1,21 @@
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  - docker build -t rdenman/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true rdenman/react-test npm test
+
+after_success:
+  - docker build -t rdenman/multi-client ./client
+  - docker build -t rdenman/multi-nginx ./nginx
+  - docker build -t rdenman/multi-server ./server
+  - docker build -t rdenman/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push rdenman/multi-client
+  - docker push rdenman/multi-nginx
+  - docker push rdenman/multi-server
+  - docker push rdenman/multi-worker
